@@ -17,6 +17,8 @@ namespace ClassicUs.Manactor
 
         public static bool TryDispatch(PlayerControl sender, byte callId, MessageReader reader)
         {
+            ManactorRpc.EnsureFlushed();
+
             if (sender == null || sender.Data == null) return false;
 
             if (callId == RpcHandshake)

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using Hazel;
 
@@ -24,6 +25,9 @@ namespace ClassicUs.Manactor
 
     public static class ManactorRpc
     {
+        private static readonly List<Action> _pendingRegistrations = new();
+        private static bool _flushed;
+
         public static void RegisterMethods(object target)
         {
             if (target == null) return;
@@ -44,18 +48,34 @@ namespace ClassicUs.Manactor
                 var instance = method.IsStatic ? null : target;
                 var capturedMethod = method;
                 var capturedParameters = parameters;
-                byte callId = attr.CallId ?? RpcIdAllocator.GetId(attr.Key);
+                var capturedAttr = attr;
 
-                NetworkManager.RegisterHandler(callId, (senderId, reader) =>
+                void Register()
                 {
-                    var args = new object[capturedParameters.Length];
-                    args[0] = senderId;
-                    for (int i = 1; i < capturedParameters.Length; i++)
-                        args[i] = ReadValue(reader, capturedParameters[i].ParameterType);
+                    byte callId = capturedAttr.CallId ?? RpcIdAllocator.GetId(capturedAttr.Key);
+                    NetworkManager.RegisterHandler(callId, (senderId, reader) =>
+                    {
+                        var args = new object[capturedParameters.Length];
+                        args[0] = senderId;
+                        for (int i = 1; i < capturedParameters.Length; i++)
+                            args[i] = ReadValue(reader, capturedParameters[i].ParameterType);
 
-                    capturedMethod.Invoke(instance, args);
-                });
+                        capturedMethod.Invoke(instance, args);
+                    });
+                }
+
+                if (capturedAttr.CallId.HasValue) Register();
+                else _pendingRegistrations.Add(Register);
             }
+        }
+
+        public static void EnsureFlushed()
+        {
+            if (_flushed) return;
+            _flushed = true;
+
+            foreach (var register in _pendingRegistrations) register();
+            _pendingRegistrations.Clear();
         }
 
         public static void Send(byte callId, params object[] args)
@@ -67,7 +87,11 @@ namespace ClassicUs.Manactor
             });
         }
 
-        public static void Send(string key, params object[] args) => Send(RpcIdAllocator.GetId(key), args);
+        public static void Send(string key, params object[] args)
+        {
+            EnsureFlushed();
+            Send(RpcIdAllocator.GetId(key), args);
+        }
 
         private static object ReadValue(MessageReader reader, Type type)
         {
