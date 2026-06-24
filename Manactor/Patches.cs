@@ -67,23 +67,33 @@ namespace ClassicUs.Manactor
     [HarmonyPatch(typeof(GameStartManager), nameof(GameStartManager.Update))]
     internal static class GameStartManager_Update_Patch
     {
+        private const float ResendIntervalSeconds = 2.5f;
+
         private static float _joinTime = -1f;
         private static bool _checking;
         private static bool _fired;
+        private static float _nextResend = -1f;
 
         internal static void StartCheck()
         {
             _joinTime = Time.time;
             _checking = true;
             _fired = false;
+            _nextResend = Time.time;
         }
 
         private static void Postfix()
         {
+            if (Time.time >= _nextResend)
+            {
+                _nextResend = Time.time + ResendIntervalSeconds;
+                NetworkManager.SendHandshake();
+            }
+
             KickTracker.CheckPending();
 
             if (!_checking || _fired) return;
-            if (Time.time - _joinTime < 5f) return;
+            if (Time.time - _joinTime < 10f) return;
 
             _checking = false;
             _fired = true;
