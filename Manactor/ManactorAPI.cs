@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Hazel;
 
 namespace ClassicUs.Manactor
 {
@@ -38,6 +39,12 @@ namespace ClassicUs.Manactor
                     return false;
             return true;
         }
+
+        public static void RegisterRpcHandler(byte callId, Action<byte, MessageReader> handler) =>
+            NetworkManager.RegisterHandler(callId, handler);
+
+        public static void SendRpc(byte callId, Action<MessageWriter> writePayload) =>
+            NetworkManager.SendRpc(callId, writePayload);
 
         internal static IReadOnlyList<(string mod, string version)> GetLocalMods() => _localMods;
 

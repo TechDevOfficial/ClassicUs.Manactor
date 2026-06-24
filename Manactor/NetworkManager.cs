@@ -8,6 +8,50 @@ namespace ClassicUs.Manactor
     {
         public const byte RpcHandshake = 211;
 
+        private static readonly Dictionary<byte, Action<byte, MessageReader>> _handlers = new();
+
+        public static void RegisterHandler(byte callId, Action<byte, MessageReader> handler)
+        {
+            _handlers[callId] = handler;
+        }
+
+        public static bool TryDispatch(PlayerControl sender, byte callId, MessageReader reader)
+        {
+            if (sender == null || sender.Data == null) return false;
+
+            if (callId == RpcHandshake)
+            {
+                HandleHandshake(sender.Data.PlayerId, reader);
+                return true;
+            }
+
+            if (_handlers.TryGetValue(callId, out var handler))
+            {
+                handler(sender.Data.PlayerId, reader);
+                return true;
+            }
+
+            return false;
+        }
+
+        public static void SendRpc(byte callId, Action<MessageWriter> writePayload)
+        {
+            var client = AmongUsClient.Instance;
+            var local = PlayerControl.LocalPlayer;
+            if (client == null || local == null) return;
+
+            try
+            {
+                var w = client.StartRpcImmediately(local.NetId, callId, SendOption.Reliable, -1);
+                writePayload?.Invoke(w);
+                client.FinishRpcImmediately(w);
+            }
+            catch (Exception e)
+            {
+                ManactorPlugin.Log.LogError("SendRpc failed: " + e);
+            }
+        }
+
         public static void SendHandshake()
         {
             var client = AmongUsClient.Instance;

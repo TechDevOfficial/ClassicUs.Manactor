@@ -11,14 +11,12 @@ namespace ClassicUs.Manactor
     {
         private static bool Prefix(PlayerControl __instance, byte callId, MessageReader reader)
         {
-            if (callId != NetworkManager.RpcHandshake) return true;
             try
             {
-                if (__instance == null || __instance.Data == null) return false;
-                NetworkManager.HandleHandshake(__instance.Data.PlayerId, reader);
+                if (NetworkManager.TryDispatch(__instance, callId, reader)) return false;
             }
-            catch (Exception e) { ManactorPlugin.Log.LogError("RPC 211 handling failed: " + e); }
-            return false;
+            catch (Exception e) { ManactorPlugin.Log.LogError("RPC dispatch failed: " + e); }
+            return true;
         }
     }
 
