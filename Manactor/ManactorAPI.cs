@@ -23,6 +23,8 @@ namespace ClassicUs.Manactor
 
         public static bool IsLobbyFullyModded() => LobbyTracker.IsFullyModded();
 
+        public static bool HasLocalMods() => _localMods.Count > 0;
+
         public static List<byte> GetUnmoddedPlayers() => LobbyTracker.GetUnmoddedIds();
 
         public static bool IsModCompatible(string modName)

@@ -23,10 +23,13 @@ namespace ClassicUs.Manactor
     [HarmonyPatch(typeof(AmongUsClient), nameof(AmongUsClient.OnPlayerJoined))]
     internal static class AmongUsClient_OnPlayerJoined_Patch
     {
-        private static void Postfix(AmongUsClient __instance)
+        private static void Postfix(AmongUsClient __instance, ClientData data)
         {
             if (__instance == null) return;
             NetworkManager.SendHandshake();
+
+            if (__instance.AmHost && data != null)
+                KickTracker.TrackJoin(data.Id);
         }
     }
 
@@ -35,7 +38,10 @@ namespace ClassicUs.Manactor
     {
         private static void Postfix(ClientData data, DisconnectReasons reason)
         {
-            if (data == null || data.Character == null || data.Character.Data == null) return;
+            if (data == null) return;
+            KickTracker.Untrack(data.Id);
+
+            if (data.Character == null || data.Character.Data == null) return;
             try
             {
                 var pid = data.Character.Data.PlayerId;
@@ -74,6 +80,8 @@ namespace ClassicUs.Manactor
 
         private static void Postfix()
         {
+            KickTracker.CheckPending();
+
             if (!_checking || _fired) return;
             if (Time.time - _joinTime < 5f) return;
 
