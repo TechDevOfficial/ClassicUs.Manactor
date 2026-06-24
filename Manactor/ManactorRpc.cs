@@ -31,12 +31,23 @@ namespace ClassicUs.Manactor
         public static void RegisterMethods(object target)
         {
             if (target == null) return;
-            var type = target.GetType();
+            RegisterMethods(target.GetType(), target);
+        }
 
+        public static void RegisterMethods(Type type) => RegisterMethods(type, null);
+
+        private static void RegisterMethods(Type type, object target)
+        {
             foreach (var method in type.GetMethods(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
             {
                 var attr = method.GetCustomAttribute<ManactorRpcAttribute>();
                 if (attr == null) continue;
+
+                if (!method.IsStatic && target == null)
+                {
+                    ManactorPlugin.Log.LogError($"[ManactorRpc] {type.Name}.{method.Name} is an instance method but no instance was provided, skipping.");
+                    continue;
+                }
 
                 var parameters = method.GetParameters();
                 if (parameters.Length == 0 || parameters[0].ParameterType != typeof(byte))

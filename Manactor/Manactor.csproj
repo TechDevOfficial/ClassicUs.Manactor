@@ -10,7 +10,7 @@
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <NoWarn>CS0626;CS0649;CS8632;CS0108</NoWarn>
 
-    <Version>1.0.8</Version>
+    <Version>1.0.9</Version>
     <PackageId>ClassicUs.Manactor</PackageId>
     <Authors>Manu</Authors>
     <Description>Networking framework for Classic Us (Among Us) BepInEx mods. Provides RPC helpers, lobby mod tracking, and unmodded lobby detection.</Description>

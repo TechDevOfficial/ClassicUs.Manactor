@@ -51,6 +51,9 @@ namespace ClassicUs.Manactor
         public static void RegisterRpcMethods(object target) =>
             ManactorRpc.RegisterMethods(target);
 
+        public static void RegisterRpcMethods(Type type) =>
+            ManactorRpc.RegisterMethods(type);
+
         public static void SendRpcMethod(byte callId, params object[] args) =>
             ManactorRpc.Send(callId, args);
 
