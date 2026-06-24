@@ -56,8 +56,7 @@ namespace ClassicUs.Manactor
 
                 _pendingClients.Remove(clientId);
                 _secondChance.Remove(clientId);
-                ManactorPlugin.Log.LogInfo($"[KickTracker] Client {clientId} has no compatible mods after the grace period, kicking.");
-                client.KickPlayer(clientId, false);
+                ManactorPlugin.Log.LogWarning($"[KickTracker] Client {clientId} has no recorded handshake after the grace period. Auto-kick is disabled until handshake delivery is more reliable; not kicking.");
             }
         }
 
