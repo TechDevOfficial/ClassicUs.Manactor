@@ -9,21 +9,13 @@ namespace ClassicUs.Manactor
     [HarmonyPatch(typeof(PlayerControl), nameof(PlayerControl.HandleRpc))]
     internal static class PlayerControl_HandleRpc_Patch
     {
-        private static bool Prefix(byte callId, MessageReader reader)
+        private static bool Prefix(PlayerControl __instance, byte callId, MessageReader reader)
         {
             if (callId != NetworkManager.RpcHandshake) return true;
             try
             {
-                var sender = PlayerControl.LocalPlayer;
-                if (sender == null || sender.Data == null) return false;
-
-                foreach (var p in PlayerControl.AllPlayerControls)
-                {
-                    if (p == null || p.Data == null) continue;
-                    if (p.NetId == sender.NetId) continue;
-                    NetworkManager.HandleHandshake(p.Data.PlayerId, reader);
-                    break;
-                }
+                if (__instance == null || __instance.Data == null) return false;
+                NetworkManager.HandleHandshake(__instance.Data.PlayerId, reader);
             }
             catch (Exception e) { ManactorPlugin.Log.LogError("RPC 211 handling failed: " + e); }
             return false;
