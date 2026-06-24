@@ -5,18 +5,22 @@ namespace ClassicUs.Manactor
 {
     internal static class KickTracker
     {
-        private const float GracePeriodSeconds = 6f;
+        private const float GracePeriodSeconds = 15f;
+        private const float SecondChanceSeconds = 8f;
 
         private static readonly Dictionary<int, float> _pendingClients = new();
+        private static readonly HashSet<int> _secondChance = new();
 
         public static void TrackJoin(int clientId)
         {
             _pendingClients[clientId] = Time.time + GracePeriodSeconds;
+            _secondChance.Remove(clientId);
         }
 
         public static void Untrack(int clientId)
         {
             _pendingClients.Remove(clientId);
+            _secondChance.Remove(clientId);
         }
 
         public static void CheckPending()
@@ -31,14 +35,29 @@ namespace ClassicUs.Manactor
 
             foreach (var clientId in due)
             {
-                _pendingClients.Remove(clientId);
-                if (clientId == client.ClientId) continue;
-
-                if (!IsClientModded(clientId))
+                if (clientId == client.ClientId)
                 {
-                    ManactorPlugin.Log.LogInfo($"[KickTracker] Client {clientId} has no compatible mods after the grace period, kicking.");
-                    client.KickPlayer(clientId, false);
+                    _pendingClients.Remove(clientId);
+                    continue;
                 }
+
+                if (IsClientModded(clientId))
+                {
+                    _pendingClients.Remove(clientId);
+                    _secondChance.Remove(clientId);
+                    continue;
+                }
+
+                if (_secondChance.Add(clientId))
+                {
+                    _pendingClients[clientId] = Time.time + SecondChanceSeconds;
+                    continue;
+                }
+
+                _pendingClients.Remove(clientId);
+                _secondChance.Remove(clientId);
+                ManactorPlugin.Log.LogInfo($"[KickTracker] Client {clientId} has no compatible mods after the grace period, kicking.");
+                client.KickPlayer(clientId, false);
             }
         }
 
