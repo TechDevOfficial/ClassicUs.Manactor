@@ -46,6 +46,12 @@ namespace ClassicUs.Manactor
         public static void SendRpc(byte callId, Action<MessageWriter> writePayload) =>
             NetworkManager.SendRpc(callId, writePayload);
 
+        public static void RegisterRpcMethods(object target) =>
+            ManactorRpc.RegisterMethods(target);
+
+        public static void SendRpcMethod(byte callId, params object[] args) =>
+            ManactorRpc.Send(callId, args);
+
         internal static IReadOnlyList<(string mod, string version)> GetLocalMods() => _localMods;
 
         internal static void FirePlayerModded(byte id, List<(string mod, string version)> mods)
