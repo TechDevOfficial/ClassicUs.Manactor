@@ -7,11 +7,18 @@ namespace ClassicUs.Manactor
     [AttributeUsage(AttributeTargets.Method)]
     public sealed class ManactorRpcAttribute : Attribute
     {
-        public byte CallId { get; }
+        public byte? CallId { get; }
+        public string Key { get; }
 
         public ManactorRpcAttribute(byte callId)
         {
             CallId = callId;
+        }
+
+        public ManactorRpcAttribute(string key)
+        {
+            Key = key;
+            RpcIdAllocator.Reserve(key);
         }
     }
 
@@ -37,8 +44,9 @@ namespace ClassicUs.Manactor
                 var instance = method.IsStatic ? null : target;
                 var capturedMethod = method;
                 var capturedParameters = parameters;
+                byte callId = attr.CallId ?? RpcIdAllocator.GetId(attr.Key);
 
-                NetworkManager.RegisterHandler(attr.CallId, (senderId, reader) =>
+                NetworkManager.RegisterHandler(callId, (senderId, reader) =>
                 {
                     var args = new object[capturedParameters.Length];
                     args[0] = senderId;
@@ -58,6 +66,8 @@ namespace ClassicUs.Manactor
                     WriteValue(w, arg);
             });
         }
+
+        public static void Send(string key, params object[] args) => Send(RpcIdAllocator.GetId(key), args);
 
         private static object ReadValue(MessageReader reader, Type type)
         {

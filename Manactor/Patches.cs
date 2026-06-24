@@ -99,4 +99,46 @@ namespace ClassicUs.Manactor
             NetworkManager.SendHandshake();
         }
     }
+
+    [HarmonyPatch(typeof(IntroCutscene), nameof(IntroCutscene.CoBegin))]
+    internal static class IntroCutscene_CoBegin_Patch
+    {
+        private static void Prefix()
+        {
+            try { ManactorAPI.FireGameStarted(); }
+            catch (Exception e) { ManactorPlugin.Log.LogError("OnGameStarted event: " + e); }
+        }
+    }
+
+    [HarmonyPatch(typeof(MeetingHud), nameof(MeetingHud.Start))]
+    internal static class MeetingHud_Start_Patch
+    {
+        private static void Postfix()
+        {
+            try { ManactorAPI.FireMeetingStarted(); }
+            catch (Exception e) { ManactorPlugin.Log.LogError("OnMeetingStarted event: " + e); }
+        }
+    }
+
+    [HarmonyPatch(typeof(PlayerControl), nameof(PlayerControl.MurderPlayer))]
+    internal static class PlayerControl_MurderPlayer_Patch
+    {
+        private static void Postfix(PlayerControl target)
+        {
+            if (target == null || target.Data == null) return;
+            try { ManactorAPI.FirePlayerDied(target.Data.PlayerId); }
+            catch (Exception e) { ManactorPlugin.Log.LogError("OnPlayerDied event: " + e); }
+        }
+    }
+
+    [HarmonyPatch(typeof(RoleBehaviour), nameof(RoleBehaviour.OnAssign))]
+    internal static class RoleBehaviour_OnAssign_Patch
+    {
+        private static void Postfix(RoleBehaviour __instance, PlayerControl player)
+        {
+            if (__instance == null || player == null || player.Data == null) return;
+            try { ManactorAPI.FireRoleAssigned(player.Data.PlayerId, __instance.GetType().Name); }
+            catch (Exception e) { ManactorPlugin.Log.LogError("OnRoleAssigned event: " + e); }
+        }
+    }
 }

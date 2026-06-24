@@ -52,6 +52,19 @@ namespace ClassicUs.Manactor
         public static void SendRpcMethod(byte callId, params object[] args) =>
             ManactorRpc.Send(callId, args);
 
+        public static void SendRpcMethod(string key, params object[] args) =>
+            ManactorRpc.Send(key, args);
+
+        public static event Action OnGameStarted;
+        public static event Action OnMeetingStarted;
+        public static event Action<byte> OnPlayerDied;
+        public static event Action<byte, string> OnRoleAssigned;
+
+        internal static void FireGameStarted() => OnGameStarted?.Invoke();
+        internal static void FireMeetingStarted() => OnMeetingStarted?.Invoke();
+        internal static void FirePlayerDied(byte playerId) => OnPlayerDied?.Invoke(playerId);
+        internal static void FireRoleAssigned(byte playerId, string roleName) => OnRoleAssigned?.Invoke(playerId, roleName);
+
         internal static IReadOnlyList<(string mod, string version)> GetLocalMods() => _localMods;
 
         internal static void FirePlayerModded(byte id, List<(string mod, string version)> mods)
