@@ -88,10 +88,11 @@ namespace ClassicUs.Manactor
             _checking = false;
             _fired = true;
 
-            if (!LobbyTracker.HostIsModded())
+            if (!LobbyTracker.HostIsModded() && ManactorAPI.HasLocalMods())
             {
-                ManactorPlugin.Log.LogInfo("Host has no Manactor — unmodded lobby.");
+                ManactorPlugin.Log.LogInfo("Host has no Manactor — leaving unmodded lobby to avoid an unfair advantage.");
                 ManactorAPI.FireJoiningUnmoddedLobby();
+                AmongUsClient.Instance?.ExitGame();
             }
         }
     }
