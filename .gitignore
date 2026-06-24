@@ -1,0 +1,28 @@
+## Build outputs
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+nupkg/
+
+## User-specific files
+*.user
+*.userosscache
+*.sln.docstates
+
+## Visual Studio cache and settings
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.suo
+MonoAndroid/
+MonoTouch/
+x64/
+x86/
+
+## Rider / Resharper
+.idea/
+_ReSharper*/
+*.csproj.user
