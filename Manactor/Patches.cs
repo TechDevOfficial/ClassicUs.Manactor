@@ -90,9 +90,8 @@ namespace ClassicUs.Manactor
 
             if (!LobbyTracker.HostIsModded() && ManactorAPI.HasLocalMods())
             {
-                ManactorPlugin.Log.LogInfo("Host has no Manactor — leaving unmodded lobby to avoid an unfair advantage.");
+                ManactorPlugin.Log.LogWarning("Host has no recorded Manactor handshake after the grace period. Auto-leave is disabled until handshake delivery is more reliable; not leaving.");
                 ManactorAPI.FireJoiningUnmoddedLobby();
-                AmongUsClient.Instance?.ExitGame();
             }
         }
     }

@@ -9,7 +9,7 @@ namespace ClassicUs.Manactor
     public class ManactorPlugin : BasePlugin
     {
         public const string Guid = "classicus.manactor";
-        public const string Version = "1.0.5";
+        public const string Version = "1.0.6";
 
         public static ManualLogSource Log;
 
