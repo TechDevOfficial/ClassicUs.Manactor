@@ -6,6 +6,8 @@ namespace ClassicUs.Manactor
 {
     internal static class Il2CppTypeRegistrar
     {
+        private const int FramesBetweenRegistrations = 15;
+
         private static readonly Queue<Action> _pending = new();
         private static int _lastServicedFrame = -1;
 
@@ -14,7 +16,7 @@ namespace ClassicUs.Manactor
         public static void Tick()
         {
             if (_pending.Count == 0) return;
-            if (Time.frameCount == _lastServicedFrame) return;
+            if (_lastServicedFrame >= 0 && Time.frameCount - _lastServicedFrame < FramesBetweenRegistrations) return;
             _lastServicedFrame = Time.frameCount;
 
             var register = _pending.Dequeue();
