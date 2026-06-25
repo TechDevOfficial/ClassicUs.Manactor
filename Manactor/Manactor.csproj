@@ -10,7 +10,7 @@
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <NoWarn>CS0626;CS0649;CS8632;CS0108</NoWarn>
 
-    <Version>1.0.13</Version>
+    <Version>1.0.14</Version>
     <PackageId>ClassicUs.Manactor</PackageId>
     <Authors>Manu</Authors>
     <Description>Networking framework for Classic Us (Among Us) BepInEx mods. Provides RPC helpers, lobby mod tracking, and unmodded lobby detection.</Description>
@@ -21,7 +21,6 @@
     <IncludeBuildOutput>true</IncludeBuildOutput>
     <PackageReadmeFile>README.md</PackageReadmeFile>
 
-    <!-- Cartella del gioco: cambia qui se sposti il gioco -->
     <GameDir>C:\Users\afino\Downloads\Classic Us 2026.5.27 Windows</GameDir>
     <PluginsDir>$(GameDir)\BepInEx\plugins</PluginsDir>
   </PropertyGroup>
@@ -34,7 +33,6 @@
     <None Include="README.md" Pack="true" PackagePath="\"/>
   </ItemGroup>
 
-  <!-- Copia automatica del DLL nella cartella plugins dopo la build -->
   <Target Name="CopyToPlugins" AfterTargets="Build">
     <MakeDir Directories="$(PluginsDir)" />
     <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" DestinationFolder="$(PluginsDir)" />

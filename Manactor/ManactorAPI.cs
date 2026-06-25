@@ -51,6 +51,9 @@ namespace ClassicUs.Manactor
         public static void RegisterIl2CppType(Action register) =>
             Il2CppTypeRegistrar.Enqueue(register);
 
+        public static int ReserveSettingsRows(int menuInstanceId, int count) =>
+            SettingsRowAllocator.ReserveRows(menuInstanceId, count);
+
         public static void RegisterRpcMethods(object target) =>
             ManactorRpc.RegisterMethods(target);
 
