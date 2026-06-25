@@ -160,4 +160,15 @@ namespace ClassicUs.Manactor
             catch (Exception e) { ManactorPlugin.Log.LogError("OnRoleAssigned event: " + e); }
         }
     }
+
+    [HarmonyPatch(typeof(RoleBehaviour), nameof(RoleBehaviour.roleDescriptionShort), MethodType.Getter)]
+    internal static class RoleBehaviour_DescriptionShort_SafeGuard_Patch
+    {
+        private static Exception Finalizer(ref string __result, Exception __exception)
+        {
+            if (__exception == null) return null;
+            __result = string.Empty;
+            return null;
+        }
+    }
 }
