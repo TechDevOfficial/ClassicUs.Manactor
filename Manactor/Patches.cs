@@ -93,15 +93,16 @@ namespace ClassicUs.Manactor
             KickTracker.CheckPending();
 
             if (!_checking || _fired) return;
-            if (Time.time - _joinTime < 10f) return;
+            if (Time.time - _joinTime < 15f) return;
 
             _checking = false;
             _fired = true;
 
             if (!LobbyTracker.HostIsModded() && ManactorAPI.HasLocalMods())
             {
-                ManactorPlugin.Log.LogWarning("Host has no recorded Manactor handshake after the grace period. Auto-leave is disabled until handshake delivery is more reliable; not leaving.");
+                ManactorPlugin.Log.LogInfo("Host has no recorded Manactor handshake after the grace period — leaving unmodded lobby to avoid an unfair advantage.");
                 ManactorAPI.FireJoiningUnmoddedLobby();
+                AmongUsClient.Instance?.ExitGame();
             }
         }
     }
