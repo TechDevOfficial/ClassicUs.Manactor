@@ -48,6 +48,9 @@ namespace ClassicUs.Manactor
         public static void SendRpc(byte callId, Action<MessageWriter> writePayload) =>
             NetworkManager.SendRpc(callId, writePayload);
 
+        public static void RegisterIl2CppType(Action register) =>
+            Il2CppTypeRegistrar.Enqueue(register);
+
         public static void RegisterRpcMethods(object target) =>
             ManactorRpc.RegisterMethods(target);
 
