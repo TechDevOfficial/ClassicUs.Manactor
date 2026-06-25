@@ -166,15 +166,4 @@ namespace ClassicUs.Manactor
     {
         private static void Prefix() => Il2CppTypeRegistrar.Tick();
     }
-
-    [HarmonyPatch(typeof(RoleBehaviour), nameof(RoleBehaviour.roleDescriptionShort), MethodType.Getter)]
-    internal static class RoleBehaviour_DescriptionShort_SafeGuard_Patch
-    {
-        private static Exception Finalizer(ref string __result, Exception __exception)
-        {
-            if (__exception == null) return null;
-            __result = string.Empty;
-            return null;
-        }
-    }
 }
