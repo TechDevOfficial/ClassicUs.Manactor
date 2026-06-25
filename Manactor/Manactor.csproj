@@ -27,7 +27,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ClassicUs.GameLibs" Version="2026.5.27.0" PrivateAssets="all" />
+    <PackageReference Include="ClassicUs.GameLibs" Version="2026.5.27.1" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
