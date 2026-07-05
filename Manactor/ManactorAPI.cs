@@ -51,6 +51,9 @@ namespace ClassicUs.Manactor
         public static void RegisterIl2CppType(Action register) =>
             Il2CppTypeRegistrar.Enqueue(register);
 
+        public static void FlushPendingIl2CppTypeRegistrations() =>
+            Il2CppTypeRegistrar.FlushAll();
+
         public static int ReserveSettingsRows(int menuInstanceId, int count) =>
             SettingsRowAllocator.ReserveRows(menuInstanceId, count);
 

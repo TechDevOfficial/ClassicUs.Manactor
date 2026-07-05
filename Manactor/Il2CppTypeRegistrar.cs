@@ -23,5 +23,16 @@ namespace ClassicUs.Manactor
             try { register(); }
             catch (Exception e) { ManactorPlugin.Log.LogError("Il2CppTypeRegistrar: " + e); }
         }
+
+        public static void FlushAll()
+        {
+            while (_pending.Count > 0)
+            {
+                var register = _pending.Dequeue();
+                try { register(); }
+                catch (Exception e) { ManactorPlugin.Log.LogError("Il2CppTypeRegistrar: " + e); }
+            }
+            _lastServicedFrame = Time.frameCount;
+        }
     }
 }
