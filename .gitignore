@@ -4,6 +4,7 @@
 [Dd]ebug/
 [Rr]elease/
 nupkg/
+packages/
 
 ## User-specific files
 *.user
