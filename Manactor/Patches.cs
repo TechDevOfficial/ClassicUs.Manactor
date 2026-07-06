@@ -164,6 +164,10 @@ namespace ClassicUs.Manactor
     [HarmonyPatch(typeof(HudManager), nameof(HudManager.FixedUpdate))]
     internal static class HudManager_FixedUpdate_Il2CppTypeRegistrar_Patch
     {
-        private static void Prefix() => Il2CppTypeRegistrar.Tick();
+        private static void Prefix()
+        {
+            Il2CppTypeRegistrar.Tick();
+            KillingAPI.Tick();
+        }
     }
 }
