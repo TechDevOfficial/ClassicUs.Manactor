@@ -1,4 +1,5 @@
 using System;
+using BepInEx.Unity.IL2CPP.Utils.Collections;
 using HarmonyLib;
 using Hazel;
 using InnerNet;
@@ -168,6 +169,24 @@ namespace ClassicUs.Manactor
         {
             Il2CppTypeRegistrar.Tick();
             KillingAPI.Tick();
+        }
+    }
+
+    [HarmonyPatch(typeof(KillAnimation), nameof(KillAnimation.CoPerformKill))]
+    internal static class KillAnimation_CoPerformKill_Patch
+    {
+        private static bool Prefix(PlayerControl source, ref Il2CppSystem.Collections.IEnumerator __result)
+        {
+            if (source == null || source.Data == null || !KillingAPI.ShouldSuppressKillAnimation(source.Data.PlayerId))
+                return true;
+
+            __result = Empty().WrapToIl2Cpp();
+            return false;
+        }
+
+        private static System.Collections.IEnumerator Empty()
+        {
+            yield break;
         }
     }
 }

@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace ClassicUs.Manactor
@@ -12,15 +10,10 @@ namespace ClassicUs.Manactor
 
     internal static class KillingAPI
     {
-        private const float ResumeDelaySeconds = 0.08f;
+        private const float SuppressWindowSeconds = 2f;
 
-        private sealed class PausedPlayer
-        {
-            public byte PlayerId;
-            public float ResumeAt;
-        }
-
-        private static readonly Dictionary<byte, PausedPlayer> _paused = new();
+        private static byte? _suppressPlayerId;
+        private static float _suppressUntil;
 
         public static void KillPlayer(PlayerControl killer, PlayerControl target, KillOptions options = null)
         {
@@ -33,60 +26,30 @@ namespace ClassicUs.Manactor
                 return;
             }
 
-            Vector2 killerPosition = killer.GetTruePosition();
-
-            if (killer.Data != null && killer.NetTransform != null)
-                killer.NetTransform.SetPaused(true);
+            if (killer.Data != null)
+            {
+                _suppressPlayerId = killer.Data.PlayerId;
+                _suppressUntil = Time.time + SuppressWindowSeconds;
+            }
 
             killer.RpcMurderPlayer(target, options.ResultFlags);
-
-            if (killer.NetTransform != null)
-            {
-                killer.NetTransform.SnapTo(killerPosition);
-                killer.NetTransform.RpcSnapTo(killerPosition);
-
-                if (killer.Data != null)
-                {
-                    _paused[killer.Data.PlayerId] = new PausedPlayer
-                    {
-                        PlayerId = killer.Data.PlayerId,
-                        ResumeAt = Time.time + ResumeDelaySeconds,
-                    };
-                }
-            }
-            else
-            {
-                killer.transform.position = new Vector3(killerPosition.x, killerPosition.y, killer.transform.position.z);
-            }
         }
 
         public static void Tick()
         {
-            if (_paused.Count == 0) return;
-
-            List<byte> expired = null;
-            foreach (var kv in _paused)
-            {
-                var pause = kv.Value;
-                if (Time.time < pause.ResumeAt) continue;
-
-                (expired ??= new List<byte>()).Add(kv.Key);
-                var player = FindPlayer(pause.PlayerId);
-                if (player != null && player.NetTransform != null)
-                    player.NetTransform.SetPaused(false);
-            }
-
-            if (expired == null) return;
-            foreach (var id in expired)
-                _paused.Remove(id);
         }
 
-        private static PlayerControl FindPlayer(byte playerId)
+        internal static bool ShouldSuppressKillAnimation(byte playerId)
         {
-            foreach (var p in PlayerControl.AllPlayerControls)
-                if (p != null && p.Data != null && p.Data.PlayerId == playerId)
-                    return p;
-            return null;
+            if (_suppressPlayerId == null || _suppressPlayerId.Value != playerId) return false;
+            if (Time.time > _suppressUntil)
+            {
+                _suppressPlayerId = null;
+                return false;
+            }
+
+            _suppressPlayerId = null;
+            return true;
         }
     }
 }
