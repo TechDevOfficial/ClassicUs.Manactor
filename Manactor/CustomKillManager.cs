@@ -83,7 +83,7 @@ namespace ClassicUs.Manactor
             try
             {
                 if (options.CreateDeadBody)
-                    SpawnDeadBody(target);
+                    SpawnDeadBody(killer, target);
 
                 if (options.PlayKillSound && killer.AmOwner && killer.KillSfx != null)
                     SoundManager.Instance?.PlaySound(killer.KillSfx, false, 0.8f);
@@ -111,10 +111,24 @@ namespace ClassicUs.Manactor
             }
         }
 
-        private static void SpawnDeadBody(PlayerControl target)
+        private static void SpawnDeadBody(PlayerControl killer, PlayerControl target)
         {
-            var anim = UnityEngine.Object.FindObjectOfType<KillAnimation>();
-            if (anim == null || anim.bodyPrefab == null) return;
+            KillAnimation anim = null;
+            if (killer.KillAnimations != null)
+            {
+                foreach (var candidate in killer.KillAnimations)
+                {
+                    if (candidate == null || candidate.bodyPrefab == null) continue;
+                    anim = candidate;
+                    break;
+                }
+            }
+
+            if (anim == null)
+            {
+                ManactorPlugin.Log.LogWarning("CustomKillManager.SpawnDeadBody: no KillAnimation with a bodyPrefab found on killer.KillAnimations, skipping dead body.");
+                return;
+            }
 
             var body = UnityEngine.Object.Instantiate(anim.bodyPrefab);
             body.ParentId = target.Data.PlayerId;
