@@ -167,17 +167,17 @@ namespace ClassicUs.Manactor
         private static void Prefix()
         {
             Il2CppTypeRegistrar.Tick();
-            KillingAPI.Tick();
         }
     }
 
-    [HarmonyPatch(typeof(KillAnimation), nameof(KillAnimation.SetMovement))]
-    internal static class KillAnimation_SetMovement_Patch
+    [HarmonyPatch(typeof(PlayerControl), nameof(PlayerControl.Die))]
+    internal static class PlayerControl_Die_Patch
     {
-        private static void Postfix(PlayerControl source, bool canMove)
+        private static void Postfix(PlayerControl __instance)
         {
-            try { KillingAPI.OnSetMovement(source, canMove); }
-            catch (Exception e) { ManactorPlugin.Log.LogError("KillAnimation.SetMovement hook failed: " + e); }
+            if (__instance == null || __instance.Data == null) return;
+            try { ManactorAPI.FirePlayerDied(__instance.Data.PlayerId); }
+            catch (Exception e) { ManactorPlugin.Log.LogError("OnPlayerDied event: " + e); }
         }
     }
 }

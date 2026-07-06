@@ -69,8 +69,8 @@ namespace ClassicUs.Manactor
         public static void SendRpcMethod(string key, params object[] args) =>
             ManactorRpc.Send(key, args);
 
-        public static void KillPlayer(PlayerControl killer, PlayerControl target, KillOptions options = null) =>
-            KillingAPI.KillPlayer(killer, target, options);
+        public static void KillPlayer(PlayerControl killer, PlayerControl target, CustomKillOptions options = null) =>
+            CustomKillManager.Kill(killer, target, options);
 
         public static event Action OnGameStarted;
         public static event Action OnMeetingStarted;
