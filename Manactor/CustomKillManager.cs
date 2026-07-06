@@ -8,6 +8,7 @@ namespace ClassicUs.Manactor
         public bool CreateDeadBody = true;
         public bool TeleportKiller = true;
         public bool PlayKillSound = true;
+        public bool ShowKillAnimation = true;
         public MurderResultFlags ResultFlags = MurderResultFlags.Succeeded;
     }
 
@@ -28,17 +29,17 @@ namespace ClassicUs.Manactor
             {
                 PerformKill(killer, target, options);
                 ManactorAPI.SendRpcMethod(RpcConfirmKey, killer.Data.PlayerId, target.Data.PlayerId,
-                    options.CreateDeadBody, options.TeleportKiller, options.PlayKillSound);
+                    options.CreateDeadBody, options.TeleportKiller, options.PlayKillSound, options.ShowKillAnimation);
             }
             else
             {
                 ManactorAPI.SendRpcMethod(RpcRequestKey, killer.Data.PlayerId, target.Data.PlayerId,
-                    options.CreateDeadBody, options.TeleportKiller, options.PlayKillSound);
+                    options.CreateDeadBody, options.TeleportKiller, options.PlayKillSound, options.ShowKillAnimation);
             }
         }
 
         [ManactorRpc(RpcRequestKey)]
-        private static void OnRequestCustomKill(byte senderId, byte killerId, byte targetId, bool createDeadBody, bool teleportKiller, bool playKillSound)
+        private static void OnRequestCustomKill(byte senderId, byte killerId, byte targetId, bool createDeadBody, bool teleportKiller, bool playKillSound, bool showKillAnimation)
         {
             var client = AmongUsClient.Instance;
             if (client == null || !client.AmHost) return;
@@ -52,14 +53,15 @@ namespace ClassicUs.Manactor
                 CreateDeadBody = createDeadBody,
                 TeleportKiller = teleportKiller,
                 PlayKillSound = playKillSound,
+                ShowKillAnimation = showKillAnimation,
             };
 
             PerformKill(killer, target, options);
-            ManactorAPI.SendRpcMethod(RpcConfirmKey, killerId, targetId, createDeadBody, teleportKiller, playKillSound);
+            ManactorAPI.SendRpcMethod(RpcConfirmKey, killerId, targetId, createDeadBody, teleportKiller, playKillSound, showKillAnimation);
         }
 
         [ManactorRpc(RpcConfirmKey)]
-        private static void OnConfirmCustomKill(byte senderId, byte killerId, byte targetId, bool createDeadBody, bool teleportKiller, bool playKillSound)
+        private static void OnConfirmCustomKill(byte senderId, byte killerId, byte targetId, bool createDeadBody, bool teleportKiller, bool playKillSound, bool showKillAnimation)
         {
             var client = AmongUsClient.Instance;
             if (client != null && client.AmHost) return;
@@ -73,6 +75,7 @@ namespace ClassicUs.Manactor
                 CreateDeadBody = createDeadBody,
                 TeleportKiller = teleportKiller,
                 PlayKillSound = playKillSound,
+                ShowKillAnimation = showKillAnimation,
             });
         }
 
@@ -87,6 +90,12 @@ namespace ClassicUs.Manactor
 
                 if (options.PlayKillSound && killer.AmOwner && killer.KillSfx != null)
                     SoundManager.Instance?.PlaySound(killer.KillSfx, false, 0.8f);
+
+                if (options.ShowKillAnimation && target.AmOwner)
+                {
+                    try { HudManager.Instance?.KillOverlay?.ShowKillAnimation(killer.Data, target.Data); }
+                    catch (Exception e) { ManactorPlugin.Log.LogError("CustomKillManager.ShowKillAnimation failed: " + e); }
+                }
 
                 target.gameObject.layer = LayerMask.NameToLayer("Ghost");
                 target.Die(DeathReason.Kill, killer);
@@ -132,6 +141,12 @@ namespace ClassicUs.Manactor
 
             var body = UnityEngine.Object.Instantiate(anim.bodyPrefab);
             body.ParentId = target.Data.PlayerId;
+
+            if (body.MyRend != null)
+            {
+                try { target.SetPlayerMaterialColors(body.MyRend); }
+                catch (Exception e) { ManactorPlugin.Log.LogError("CustomKillManager.SpawnDeadBody color failed: " + e); }
+            }
 
             Vector3 pos = target.transform.position + anim.BodyOffset;
             pos.z = pos.y / 1000f;
