@@ -1,5 +1,4 @@
 using System;
-using BepInEx.Unity.IL2CPP.Utils.Collections;
 using HarmonyLib;
 using Hazel;
 using InnerNet;
@@ -172,21 +171,13 @@ namespace ClassicUs.Manactor
         }
     }
 
-    [HarmonyPatch(typeof(KillAnimation), nameof(KillAnimation.CoPerformKill))]
-    internal static class KillAnimation_CoPerformKill_Patch
+    [HarmonyPatch(typeof(KillAnimation), nameof(KillAnimation.SetMovement))]
+    internal static class KillAnimation_SetMovement_Patch
     {
-        private static bool Prefix(PlayerControl source, ref Il2CppSystem.Collections.IEnumerator __result)
+        private static void Postfix(PlayerControl source, bool canMove)
         {
-            if (source == null || source.Data == null || !KillingAPI.ShouldSuppressKillAnimation(source.Data.PlayerId))
-                return true;
-
-            __result = Empty().WrapToIl2Cpp();
-            return false;
-        }
-
-        private static System.Collections.IEnumerator Empty()
-        {
-            yield break;
+            try { KillingAPI.OnSetMovement(source, canMove); }
+            catch (Exception e) { ManactorPlugin.Log.LogError("KillAnimation.SetMovement hook failed: " + e); }
         }
     }
 }
