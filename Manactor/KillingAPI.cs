@@ -12,13 +12,12 @@ namespace ClassicUs.Manactor
 
     internal static class KillingAPI
     {
-        private const float PauseDurationSeconds = 0.5f;
+        private const float ResumeDelaySeconds = 0.08f;
 
         private sealed class PausedPlayer
         {
             public byte PlayerId;
-            public Vector2 Position;
-            public float Until;
+            public float ResumeAt;
         }
 
         private static readonly Dictionary<byte, PausedPlayer> _paused = new();
@@ -37,20 +36,28 @@ namespace ClassicUs.Manactor
             Vector2 killerPosition = killer.GetTruePosition();
 
             if (killer.Data != null && killer.NetTransform != null)
-            {
                 killer.NetTransform.SetPaused(true);
-                _paused[killer.Data.PlayerId] = new PausedPlayer
-                {
-                    PlayerId = killer.Data.PlayerId,
-                    Position = killerPosition,
-                    Until = Time.time + PauseDurationSeconds,
-                };
-            }
 
             killer.RpcMurderPlayer(target, options.ResultFlags);
 
-            if (killer.NetTransform == null)
+            if (killer.NetTransform != null)
+            {
+                killer.NetTransform.SnapTo(killerPosition);
+                killer.NetTransform.RpcSnapTo(killerPosition);
+
+                if (killer.Data != null)
+                {
+                    _paused[killer.Data.PlayerId] = new PausedPlayer
+                    {
+                        PlayerId = killer.Data.PlayerId,
+                        ResumeAt = Time.time + ResumeDelaySeconds,
+                    };
+                }
+            }
+            else
+            {
                 killer.transform.position = new Vector3(killerPosition.x, killerPosition.y, killer.transform.position.z);
+            }
         }
 
         public static void Tick()
@@ -61,39 +68,17 @@ namespace ClassicUs.Manactor
             foreach (var kv in _paused)
             {
                 var pause = kv.Value;
+                if (Time.time < pause.ResumeAt) continue;
+
+                (expired ??= new List<byte>()).Add(kv.Key);
                 var player = FindPlayer(pause.PlayerId);
-
-                if (Time.time >= pause.Until)
-                {
-                    (expired ??= new List<byte>()).Add(kv.Key);
-                    if (player != null) ResumePlayer(player, pause.Position);
-                    continue;
-                }
-
-                if (player == null) continue;
-                player.transform.position = new Vector3(pause.Position.x, pause.Position.y, player.transform.position.z);
+                if (player != null && player.NetTransform != null)
+                    player.NetTransform.SetPaused(false);
             }
 
             if (expired == null) return;
             foreach (var id in expired)
                 _paused.Remove(id);
-        }
-
-        private static void ResumePlayer(PlayerControl player, Vector2 position)
-        {
-            try
-            {
-                if (player.NetTransform != null)
-                {
-                    player.NetTransform.SnapTo(position);
-                    player.NetTransform.RpcSnapTo(position);
-                    player.NetTransform.SetPaused(false);
-                }
-            }
-            catch (Exception e)
-            {
-                ManactorPlugin.Log.LogError("KillPlayer resume position failed: " + e);
-            }
         }
 
         private static PlayerControl FindPlayer(byte playerId)
