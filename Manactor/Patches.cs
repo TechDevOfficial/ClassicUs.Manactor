@@ -58,8 +58,11 @@ namespace ClassicUs.Manactor
         private static void Postfix()
         {
             var client = AmongUsClient.Instance;
-            if (client == null || client.AmHost) return;
+            if (client == null) return;
             LobbyTracker.Clear();
+            KickTracker.Clear();
+            NetworkManager.SendHandshake();
+            if (client.AmHost) return;
             GameStartManager_Update_Patch.StartCheck();
         }
     }

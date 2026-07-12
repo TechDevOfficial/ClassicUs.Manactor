@@ -19,6 +19,7 @@ namespace ClassicUs.Manactor
             _localMods.RemoveAll(m => m.mod == modName);
             _localMods.Add((modName, version));
             ManactorPlugin.Log.LogInfo($"Registered mod: {modName} v{version}");
+            NetworkManager.SendHandshake();
         }
 
         public static bool IsLobbyFullyModded() => LobbyTracker.IsFullyModded();

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace ClassicUs.Manactor
 {
@@ -20,6 +21,17 @@ namespace ClassicUs.Manactor
         public static void Clear() => _players.Clear();
 
         public static bool IsPlayerModded(byte playerId) => _players.ContainsKey(playerId);
+
+        internal static bool HasExactModSet(IReadOnlyList<(string mod, string version)> remote, IReadOnlyList<(string mod, string version)> local)
+        {
+            if (remote.Count != local.Count) return false;
+            foreach (var (mod, version) in local)
+            {
+                var entry = remote.FirstOrDefault(item => item.mod == mod);
+                if (entry.mod == null || entry.version != version) return false;
+            }
+            return true;
+        }
 
         public static bool IsFullyModded()
         {

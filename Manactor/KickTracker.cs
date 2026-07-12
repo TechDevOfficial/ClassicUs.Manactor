@@ -5,71 +5,64 @@ namespace ClassicUs.Manactor
 {
     internal static class KickTracker
     {
-        private const float GracePeriodSeconds = 15f;
-        private const float SecondChanceSeconds = 8f;
-
+        private const float HandshakeTimeoutSeconds = 7f;
         private static readonly Dictionary<int, float> _pendingClients = new();
-        private static readonly HashSet<int> _secondChance = new();
 
         public static void TrackJoin(int clientId)
         {
-            _pendingClients[clientId] = Time.time + GracePeriodSeconds;
-            _secondChance.Remove(clientId);
+            var client = AmongUsClient.Instance;
+            if (client == null || !client.AmHost || clientId == client.ClientId) return;
+            _pendingClients[clientId] = Time.time + HandshakeTimeoutSeconds;
+            ManactorPlugin.Log.LogInfo($"[Handshake] Waiting for client {clientId}.");
         }
 
-        public static void Untrack(int clientId)
+        public static void Untrack(int clientId) => _pendingClients.Remove(clientId);
+
+        public static void ConfirmHandshake(byte playerId, bool compatible, string reason)
         {
-            _pendingClients.Remove(clientId);
-            _secondChance.Remove(clientId);
+            var client = AmongUsClient.Instance;
+            if (client == null || !client.AmHost) return;
+
+            int? clientId = FindClientId(playerId);
+            if (!clientId.HasValue) return;
+            _pendingClients.Remove(clientId.Value);
+            if (!compatible) Kick(clientId.Value, $"incompatible client ({reason})");
         }
 
         public static void CheckPending()
         {
             var client = AmongUsClient.Instance;
             if (client == null || !client.AmHost || _pendingClients.Count == 0) return;
-            if (!ManactorAPI.HasLocalMods()) return;
 
-            var due = new List<int>();
-            foreach (var kvp in _pendingClients)
-                if (Time.time >= kvp.Value) due.Add(kvp.Key);
+            var expired = new List<int>();
+            foreach (var pair in _pendingClients)
+                if (Time.time >= pair.Value) expired.Add(pair.Key);
 
-            foreach (var clientId in due)
+            foreach (var clientId in expired)
             {
-                if (clientId == client.ClientId)
-                {
-                    _pendingClients.Remove(clientId);
-                    continue;
-                }
-
-                if (IsClientModded(clientId))
-                {
-                    _pendingClients.Remove(clientId);
-                    _secondChance.Remove(clientId);
-                    continue;
-                }
-
-                if (_secondChance.Add(clientId))
-                {
-                    _pendingClients[clientId] = Time.time + SecondChanceSeconds;
-                    continue;
-                }
-
                 _pendingClients.Remove(clientId);
-                _secondChance.Remove(clientId);
-                ManactorPlugin.Log.LogInfo($"[KickTracker] Client {clientId} has no recorded handshake after the grace period, kicking.");
-                client.KickPlayer(clientId, false);
+                Kick(clientId, "missing Manactor handshake");
             }
         }
 
-        private static bool IsClientModded(int clientId)
+        public static void Clear() => _pendingClients.Clear();
+
+        private static int? FindClientId(byte playerId)
         {
-            foreach (var p in PlayerControl.AllPlayerControls)
-            {
-                if (p == null || p.Data == null) continue;
-                if (p.OwnerId == clientId)
-                    return LobbyTracker.IsPlayerModded(p.Data.PlayerId);
-            }
-            return false;
+            foreach (var player in PlayerControl.AllPlayerControls)
+                if (player != null && player.Data != null && player.Data.PlayerId == playerId)
+                    return player.OwnerId;
+            return null;
+        }
+
+        private static void Kick(int clientId, string reason)
+        {
+            var client = AmongUsClient.Instance;
+            if (client == null || !client.AmHost || clientId == client.ClientId) return;
+
+            ManactorPlugin.Log.LogWarning($"[Handshake] Kicking client {clientId}: {reason}.");
+            try { client.KickPlayer(clientId, false); }
+            catch (System.Exception e) { ManactorPlugin.Log.LogError($"[Handshake] Kick failed for client {clientId}: {e}"); }
         }
     }
 }
