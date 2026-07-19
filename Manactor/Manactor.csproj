@@ -21,12 +21,12 @@
     <IncludeBuildOutput>true</IncludeBuildOutput>
     <PackageReadmeFile>README.md</PackageReadmeFile>
 
-    <GameDir>C:\Users\afino\Downloads\Classic.Us.2026.7.4.Windows\Classic Us 2026.7.4 Windows</GameDir>
+    <GameDir>C:\Users\afino\Downloads\Classic.Us.2026.7.4.Windows\Classic Us 2026.7.11 Windows</GameDir>
     <PluginsDir>$(GameDir)\BepInEx\plugins</PluginsDir>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ClassicUs.GameLibs" Version="2026.7.4.1" PrivateAssets="all" />
+    <PackageReference Include="ClassicUs.GameLibs" Version="2026.7.11.1" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
