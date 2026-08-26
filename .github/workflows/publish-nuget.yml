@@ -32,4 +32,4 @@ jobs:
           user: manuu
 
       - name: Push to NuGet.org
-        run: dotnet nuget push "${{ github.workspace }}/Manactor/nupkg/*.nupkg" --source https://api.nuget.org/v3/index.json --skip-duplicate
+        run: dotnet nuget push "Manactor\nupkg\*.nupkg" --source https://api.nuget.org/v3/index.json --skip-duplicate
