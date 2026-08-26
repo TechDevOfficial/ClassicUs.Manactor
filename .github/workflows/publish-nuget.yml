@@ -24,7 +24,7 @@ jobs:
         run: dotnet restore Manactor/Manactor.csproj
 
       - name: Pack
-        run: dotnet pack Manactor/Manactor.csproj -c Release -o ${{ github.workspace }}/nupkg
+        run: dotnet pack Manactor/Manactor.csproj -c Release
 
       - name: NuGet login (Trusted Publishing)
         uses: NuGet/login@v1
@@ -32,4 +32,4 @@ jobs:
           user: manuu
 
       - name: Push to NuGet.org
-        run: dotnet nuget push "${{ github.workspace }}/nupkg/*.nupkg" --source https://api.nuget.org/v3/index.json --skip-duplicate
+        run: dotnet nuget push "${{ github.workspace }}/Manactor/nupkg/*.nupkg" --source https://api.nuget.org/v3/index.json --skip-duplicate
